@@ -9,6 +9,7 @@
     python3 evening.py            # 正常：睡到 19:10 / 20:30 分别发送
     python3 evening.py --now      # 测试：立刻发这两条
     python3 evening.py --dry      # 测试：只打印计划，不睡不发
+    python3 evening.py --test     # 测试：只发一条链路自检消息
 """
 
 import sys
@@ -39,6 +40,13 @@ def main():
     now_all = "--now" in sys.argv
 
     print("[%s] evening 任务启动 (TZ=%s)" % (stamp(), TZ), flush=True)
+
+    if "--test" in sys.argv:
+        cfg = remind.load_config()
+        title = "云端定时链路自检"
+        body = "云端时间 %s\n触发方式 push evening-trigger.txt\n若你看到这条，说明「本机推送 -> 云端准点发送」链路通了。" % stamp()
+        print(remind.send(cfg, title, body), flush=True)
+        return
 
     for (h, m), mode in TARGETS:
         now = datetime.now(TZ)
