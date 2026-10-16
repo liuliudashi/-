@@ -1,0 +1,5 @@
+{
+  "provider": "feishu",
+  "feishu_webhook": "https://open.feishu.cn/open-apis/bot/v2/hook/在这里填你的Webhook",
+  "serverchan_key": ""
+}

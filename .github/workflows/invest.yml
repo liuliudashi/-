@@ -1,0 +1,56 @@
+name: invest
+
+on:
+  # 云端 schedule 延迟严重，投资提醒已由本机 invest-bot cron 准点触发。
+  # 如需恢复云端定时，取消下面注释即可。
+  # schedule:
+  #   - cron: '50 6 * * 1-5'      # 北京 14:50  持仓日报（工作日）
+  #   - cron: '*/30 1-7 * * 1-5'  # 北京 09:00~15:30  暴跌提醒（工作日）
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'report / alert'
+        required: true
+        default: 'report'
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Shanghai
+      FEISHU_WEBHOOK_INVEST: ${{ secrets.FEISHU_WEBHOOK_INVEST }}
+      INVEST_CONFIG: ${{ secrets.INVEST_CONFIG }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: 恢复暴跌提醒状态
+        uses: actions/cache@v4
+        with:
+          path: invest/logs/alert_state.json
+          key: invest-alert-state-${{ github.run_id }}
+          restore-keys: invest-alert-state-
+
+      - name: 运行
+        run: |
+          case "${{ github.event.schedule }}" in
+            "50 6 * * 1-5")     MODE=report ;;
+            "*/30 1-7 * * 1-5") MODE=alert ;;
+            *)                  MODE="${{ github.event.inputs.mode }}" ;;
+          esac
+          [ -z "$MODE" ] && MODE=report
+          echo "mode=$MODE"
+          mkdir -p invest/logs
+          [ -f invest/logs/alert_state.json ] || echo '{}' > invest/logs/alert_state.json
+          cd invest
+          if [ "$MODE" = "report" ]; then
+            python3 report.py --no-ai
+          else
+            python3 alert.py --no-ai
+          fi

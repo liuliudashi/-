@@ -1,0 +1,28 @@
+name: evening
+
+on:
+  push:
+    branches: [main]
+    paths: ['evening-trigger.txt']
+  workflow_dispatch:
+
+concurrency:
+  group: evening
+  cancel-in-progress: true
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    env:
+      TZ: Asia/Shanghai
+      FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: 睡到 19:10 / 20:30 准点发送
+        run: python3 evening.py
