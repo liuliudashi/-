@@ -1,9 +1,10 @@
 name: evening
 
 on:
-  push:
-    branches: [main]
-    paths: ['evening-trigger.txt']
+  # 云端定时（UTC）。北京 19:10 启动一条 job，evening.py 内部依次等到
+  # 19:10 发晚餐、20:30 发明天午餐。只配一条 schedule，避免两个 job 重复发送。
+  schedule:
+    - cron: '10 11 * * *'   # 北京 19:10
   workflow_dispatch:
 
 concurrency:

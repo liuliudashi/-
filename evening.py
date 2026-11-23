@@ -21,7 +21,9 @@ import remind
 
 TZ = ZoneInfo("Asia/Shanghai")
 TARGETS = [((19, 10), "dinner"), ((20, 30), "lunch")]
-LATE_LIMIT = timedelta(minutes=30)
+# 云端 schedule 可能延迟十几分钟到数小时。容忍 4 小时：迟到也会补发，
+# 超过则视为当天已过、跳过（避免次日凌晨突然推送）。
+LATE_LIMIT = timedelta(hours=4)
 
 
 def stamp():
