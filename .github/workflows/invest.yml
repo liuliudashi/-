@@ -1,11 +1,11 @@
 name: invest
 
 on:
-  # 云端 schedule 延迟严重，投资提醒已由本机 invest-bot cron 准点触发。
-  # 如需恢复云端定时，取消下面注释即可。
-  # schedule:
-  #   - cron: '50 6 * * 1-5'      # 北京 14:50  持仓日报（工作日）
-  #   - cron: '*/30 1-7 * * 1-5'  # 北京 09:00~15:30  暴跌提醒（工作日）
+  # 持仓日报放云端，不依赖本机开机（工作日北京 14:50 = UTC 06:50）。
+  # 暴跌提醒时效性要求高、且 GitHub schedule 延迟不可控，仍由本机 invest-bot
+  # 的 crontab（*/5 9-15 工作日）负责，这里不再重复配置。
+  schedule:
+    - cron: '50 6 * * 1-5'      # 北京 14:50  持仓日报（工作日）
   workflow_dispatch:
     inputs:
       mode:
