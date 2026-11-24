@@ -1,9 +1,11 @@
 name: invest
 
 on:
-  # 不用 schedule：实测延迟 11 小时以上（06:50 UTC 的 job 凌晨 02:46 才跑，且失败）。
-  # 持仓日报仍由本机 invest-bot 的 crontab（50 14 * * 1-5）负责。
-  # 云端只保留手动触发，用于本机长期离线时临时补发。
+  # 主路径：云端定时，不依赖本机开机（工作日北京 14:45 启动）。
+  # 暴跌提醒时效性要求高、云端延迟不可控，仍只由本机 invest-bot 的
+  # crontab（*/5 9-15 * * 1-5）负责，这里不配 alert 的 schedule。
+  schedule:
+    - cron: '45 6 * * 1-5'      # 北京 14:45  持仓日报
   workflow_dispatch:
     inputs:
       mode:
@@ -27,6 +29,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
+
+      - name: 环境自检
+        run: |
+          date '+运行开始（北京）: %F %T %A'
+          echo "INVEST_CONFIG 长度: ${#INVEST_CONFIG}"
+          echo "FEISHU_WEBHOOK_INVEST 长度: ${#FEISHU_WEBHOOK_INVEST}"
 
       - name: 恢复暴跌提醒状态
         uses: actions/cache@v4

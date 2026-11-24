@@ -1,8 +1,9 @@
 name: health-reminder
 
 on:
-  # 云端 schedule 延迟不可控（实测 11 小时+），周日采购清单改由本机
-  # crontab（0 15 * * 0）直接发；这里只保留手动触发。
+  # 周日采购清单：云端定时（不依赖本机开机）+ 本机 crontab 兜底。
+  schedule:
+    - cron: '0 7 * * 0'     # 北京 周日 15:00  推「本周采购清单」
   workflow_dispatch:
     inputs:
       mode:
@@ -24,7 +25,11 @@ jobs:
         env:
           FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
         run: |
-          MODE="${{ github.event.inputs.mode }}"
+          case "${{ github.event.schedule }}" in
+            "0 7 * * 0") MODE=shop ;;
+            *)           MODE="${{ github.event.inputs.mode }}" ;;
+          esac
           [ -z "$MODE" ] && MODE=dinner
+          date '+运行开始（北京）: %F %T %A'
           echo "mode=$MODE"
           python3 remind.py "$MODE"

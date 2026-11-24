@@ -1,10 +1,12 @@
 name: evening
 
 on:
-  # 不用 schedule：实测 GitHub 免费队列把 11:10 UTC 的计划延迟到 22:35 UTC
-  # （北京次日 06:35）才启动，job 撑不到 19:10 就被 timeout 杀掉。
-  # 改回「本机 17:50 推 evening-trigger.txt 触发」→ 云端 sleep 到 19:10 / 20:30 准点发。
-  # 只依赖 17:50 那一刻电脑开着，白天关机时段不受影响。
+  # 主路径：云端定时，不依赖本机开机。
+  # 用 :05 而不是 :10，给 runner 启动留 5 分钟余量，evening.py 会自己 sleep 到 19:10。
+  # 注意 GitHub 免费队列偶尔延迟（11-23 实测延迟 11h25m），所以下面还保留
+  # push 触发作为兜底：本机 17:50 开着就推一下，谁先到谁生效（concurrency 去重）。
+  schedule:
+    - cron: '5 11 * * *'    # 北京 19:05 启动
   push:
     branches: [main]
     paths:
