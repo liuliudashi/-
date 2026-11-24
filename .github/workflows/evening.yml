@@ -18,7 +18,8 @@ concurrency:
 jobs:
   send:
     runs-on: ubuntu-latest
-    timeout-minutes: 300
+    # 17:50 触发到 20:30 结束约 160 分钟；留足余量（GitHub 单 job 上限 6 小时）。
+    timeout-minutes: 340
     env:
       TZ: Asia/Shanghai
       FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
