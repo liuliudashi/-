@@ -1,11 +1,9 @@
 name: invest
 
 on:
-  # 持仓日报放云端，不依赖本机开机（工作日北京 14:50 = UTC 06:50）。
-  # 暴跌提醒时效性要求高、且 GitHub schedule 延迟不可控，仍由本机 invest-bot
-  # 的 crontab（*/5 9-15 工作日）负责，这里不再重复配置。
-  schedule:
-    - cron: '50 6 * * 1-5'      # 北京 14:50  持仓日报（工作日）
+  # 不用 schedule：实测延迟 11 小时以上（06:50 UTC 的 job 凌晨 02:46 才跑，且失败）。
+  # 持仓日报仍由本机 invest-bot 的 crontab（50 14 * * 1-5）负责。
+  # 云端只保留手动触发，用于本机长期离线时临时补发。
   workflow_dispatch:
     inputs:
       mode:

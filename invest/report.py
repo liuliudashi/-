@@ -24,21 +24,26 @@ except Exception:
 BASE = os.path.dirname(os.path.abspath(__file__))
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
-def http_get(url, referer=None, encoding="utf-8", timeout=15, retries=3):
-    cmd = ["curl", "-sL", "--max-time", str(timeout), "-H", "User-Agent: " + UA]
-    if referer:
-        cmd += ["-H", "Referer: " + referer]
-    cmd.append(url)
+def http_get(url, referer=None, encoding="utf-8", timeout=25, retries=4):
+    """带重试的 GET。http:// 失败会自动再试 https:// 版本（数据源偶发整体超时）。"""
+    urls = [url]
+    if url.startswith("http://"):
+        urls.append("https://" + url[len("http://"):])
     last = None
     for i in range(retries + 1):
-        try:
-            proc = subprocess.run(cmd, capture_output=True, timeout=timeout + 5)
-            if proc.returncode == 0 and proc.stdout:
-                return proc.stdout.decode(encoding, "ignore")
-            last = RuntimeError("curl rc=%s" % proc.returncode)
-        except Exception as e:
-            last = e
-        time.sleep(1 + i)
+        for u in urls:
+            cmd = ["curl", "-sL", "--max-time", str(timeout), "-H", "User-Agent: " + UA]
+            if referer:
+                cmd += ["-H", "Referer: " + referer]
+            cmd.append(u)
+            try:
+                proc = subprocess.run(cmd, capture_output=True, timeout=timeout + 5)
+                if proc.returncode == 0 and proc.stdout:
+                    return proc.stdout.decode(encoding, "ignore")
+                last = RuntimeError("curl rc=%s %s" % (proc.returncode, u))
+            except Exception as e:
+                last = e
+        time.sleep(2 + 2 * i)
     raise last
 
 def load_config():

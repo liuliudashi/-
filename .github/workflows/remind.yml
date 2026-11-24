@@ -1,10 +1,8 @@
 name: health-reminder
 
 on:
-  # 周日晚间三餐提醒已由 evening.yml 统一负责，这里只保留周日采购清单。
-  # 云端 schedule 用 UTC：0 7 * * 0 = 北京 周日 15:00。
-  schedule:
-    - cron: '0 7 * * 0'     # 北京 周日 15:00  推「本周采购清单」
+  # 云端 schedule 延迟不可控（实测 11 小时+），周日采购清单改由本机
+  # crontab（0 15 * * 0）直接发；这里只保留手动触发。
   workflow_dispatch:
     inputs:
       mode:
@@ -26,12 +24,7 @@ jobs:
         env:
           FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
         run: |
-          case "${{ github.event.schedule }}" in
-            "30 12 * * *") MODE=lunch ;;
-            "10 11 * * *") MODE=dinner ;;
-            "0 7 * * 0")   MODE=shop ;;
-            *)             MODE="${{ github.event.inputs.mode }}" ;;
-          esac
+          MODE="${{ github.event.inputs.mode }}"
           [ -z "$MODE" ] && MODE=dinner
           echo "mode=$MODE"
           python3 remind.py "$MODE"

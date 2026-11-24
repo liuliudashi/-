@@ -1,10 +1,14 @@
 name: evening
 
 on:
-  # 云端定时（UTC）。北京 19:10 启动一条 job，evening.py 内部依次等到
-  # 19:10 发晚餐、20:30 发明天午餐。只配一条 schedule，避免两个 job 重复发送。
-  schedule:
-    - cron: '10 11 * * *'   # 北京 19:10
+  # 不用 schedule：实测 GitHub 免费队列把 11:10 UTC 的计划延迟到 22:35 UTC
+  # （北京次日 06:35）才启动，job 撑不到 19:10 就被 timeout 杀掉。
+  # 改回「本机 17:50 推 evening-trigger.txt 触发」→ 云端 sleep 到 19:10 / 20:30 准点发。
+  # 只依赖 17:50 那一刻电脑开着，白天关机时段不受影响。
+  push:
+    branches: [main]
+    paths:
+      - 'evening-trigger.txt'
   workflow_dispatch:
 
 concurrency:
